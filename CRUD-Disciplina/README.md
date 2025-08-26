@@ -46,7 +46,3 @@ ID|Nome|Sigla|CargaHoraria
 ## 👨‍💻 Autor
 
 Desenvolvido com ❤️ seguindo as melhores práticas de usabilidade e desenvolvimento web.
-
----
-
-**Nota**: Este sistema foi desenvolvido para fins educacionais e demonstra as melhores práticas de desenvolvimento PHP procedural com foco em usabilidade e manutenibilidade.
