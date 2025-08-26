@@ -1,0 +1,2 @@
+1|Fundamento da Programação|FPR|80
+2|Desenvolvimento de Aplicações WEB|DAW|80

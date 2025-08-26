@@ -1,0 +1,8 @@
+1|Programação Web|PW|80
+2|Banco de Dados|BD|60
+3|Algoritmos e Estruturas de Dados|AED|100
+4|Sistemas Operacionais|SO|70
+5|Redes de Computadores|RC|75
+6|Inteligência Artificial|IA|90
+7|Desenvolvimento Mobile|DM|85
+8|Segurança da Informação|SI|65
