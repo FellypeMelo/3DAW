@@ -1,0 +1,4 @@
+1|texto|Qual é a cor do céu?||verde
+2|multipla_escolha|Qual é a capital do Brasil?|Rio de Janeiro,São Paulo,Brasília,Salvador|Brasília
+3|texto|Quem descobriu o Brasil||Pedro
+4|multipla_escolha|Qual a Capital do Brasil|Pedro,Brasilia|Pedro

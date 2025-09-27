@@ -1,0 +1,3 @@
+1|admin|Administrador|admin@test.com|$2y$10$MizpTlEbiwNFdHhwsblzLOqXR2xlJbZMRneuynH/fpcG2N98GFMme
+2|user|Usuario Comum|user@test.com|$2y$10$izI0VsBaPOUMU8MH4GHiS.mhyzHBx01kkvV1C9hBOmev5JCDIYRti
+3|USER|Pedro|pedro@test.com|$2y$10$vghtRRFTRNlqy7QDxzKwEulzlq/rDnd9JN7ucQR7YIioQ/RsqF3WO
