@@ -78,8 +78,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="listar_perguntas.php">Voltar para a Lista de Perguntas</a>
     </div>
 
-        <script>
-            // Simple client-side ensure 5 options UI (no add/remove)
-        </script>
 </body>
 </html>
