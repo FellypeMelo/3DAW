@@ -1,3 +1,3 @@
-1|admin|Administrador|admin@test.com|$2y$10$MizpTlEbiwNFdHhwsblzLOqXR2xlJbZMRneuynH/fpcG2N98GFMme
-2|user|Usuario Comum|user@test.com|$2y$10$izI0VsBaPOUMU8MH4GHiS.mhyzHBx01kkvV1C9hBOmev5JCDIYRti
+1|admin|Administrador|admin@test.com|$2y$10$mSoWHB58jdZablWHTB9o5e9q6Scl70nhIZMcJZEsSqwLNfT/KyHfu
+2|user|Usuario Comum|user@test.com|$2y$10$l47BsbCbD0s8ebineQUa8ugX.S2zLFhAdd2wrLfbdr8sZ3IKK.jbW
 3|USER|Pedro|pedro@test.com|$2y$10$vghtRRFTRNlqy7QDxzKwEulzlq/rDnd9JN7ucQR7YIioQ/RsqF3WO

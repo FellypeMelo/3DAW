@@ -5,6 +5,7 @@ const USERS_FILE = '../../arquivos/users.txt';
 const QUESTIONS_FILE = '../../arquivos/perguntas.txt';
 const ANSWERS_FILE = '../../arquivos/respostas_users.txt';
 
+
 /**
  * Gera o próximo ID disponível para um array de dados.
  *

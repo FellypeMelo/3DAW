@@ -1,11 +1,91 @@
-<header>
-    <nav>
-        <ul>
-            <li>
-                <a href="../php/index.php">Home</a>
-                <a href="../php/listar_perguntas_user.php">Responder Perguntas</a>
-                <a href="../php/listar_respostas_user.php">Ver Respostas</a>
-            </li>
-        </ul>
+<header class="bg-gradient-to-r from-green-600 to-teal-700 shadow-lg">
+    <nav class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <!-- Logo/Brand -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md">
+                    <i class="fas fa-tint text-green-600 text-lg"></i>
+                </div>
+                <div>
+                    <a href="../php/index.php" class="text-2xl font-bold text-white hover:text-green-100 transition-colors">
+                        Water Falls
+                    </a>
+                    <span class="block text-xs text-green-200 font-medium">Usuário</span>
+                </div>
+            </div>
+
+            <!-- Menu Items -->
+            <div class="hidden md:flex items-center space-x-1">
+                <a href="../php/listar_perguntas_user.php" 
+                   class="flex items-center px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-all duration-300 group">
+                    <i class="fas fa-question-circle mr-2 group-hover:scale-110 transition-transform"></i>
+                    Responder Perguntas
+                </a>
+                <a href="../php/listar_respostas_user.php" 
+                   class="flex items-center px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-all duration-300 group">
+                    <i class="fas fa-history mr-2 group-hover:scale-110 transition-transform"></i>
+                    Ver Respostas
+                </a>
+            </div>
+
+            <!-- Logout Button -->
+            <div class="flex items-center space-x-4">
+                <span class="hidden sm:block text-green-200 text-sm">
+                    <i class="fas fa-user mr-1"></i>
+                    Usuário
+                </span>
+                <a href="../php/logout.php" 
+                   class="flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all duration-300 group border border-white/30 hover:border-white/50">
+                    <i class="fas fa-sign-out-alt mr-2 group-hover:rotate-180 transition-transform"></i>
+                    Sair
+                </a>
+            </div>
+
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-button" class="md:hidden text-white p-2">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-2 pb-4 border-t border-green-500 pt-4">
+            <a href="../php/listar_perguntas_user.php" 
+               class="flex items-center px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors group">
+                <i class="fas fa-question-circle mr-3 group-hover:scale-110 transition-transform"></i>
+                Responder Perguntas
+            </a>
+            <a href="../php/listar_respostas_user.php" 
+               class="flex items-center px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors group">
+                <i class="fas fa-history mr-3 group-hover:scale-110 transition-transform"></i>
+                Ver Respostas
+            </a>
+        </div>
     </nav>
 </header>
+
+<script>
+    // Mobile menu toggle
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        const menu = document.getElementById('mobile-menu');
+        const icon = this.querySelector('i');
+        
+        menu.classList.toggle('hidden');
+        
+        if (menu.classList.contains('hidden')) {
+            icon.className = 'fas fa-bars text-xl';
+        } else {
+            icon.className = 'fas fa-times text-xl';
+        }
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('mobile-menu');
+        const button = document.getElementById('mobile-menu-button');
+        
+        if (!menu.contains(event.target) && !button.contains(event.target)) {
+            menu.classList.add('hidden');
+            button.querySelector('i').className = 'fas fa-bars text-xl';
+        }
+    });
+</script>

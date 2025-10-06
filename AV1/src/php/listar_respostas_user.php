@@ -36,9 +36,10 @@ $minhas = array_filter($respostas, function($r) use ($userId) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minhas Respostas</title>
-    <link rel="stylesheet" href="../../src/html/estilo.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-gray-50 min-h-screen">
     <?php
         if($_SESSION['tipo'] == 'admin'){
             include '../html/menu_admin.html';
@@ -47,31 +48,39 @@ $minhas = array_filter($respostas, function($r) use ($userId) {
         }
     ?>
 
-    <div class="container">
-        <h1>Minhas Respostas</h1>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-history text-blue-500 mr-2"></i>
+            Minhas Respostas
+        </h1>
         <?php if (empty($minhas)): ?>
-            <p>Você ainda não respondeu nenhuma pergunta.</p>
+            <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+                <i class="fas fa-inbox text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-600">Você ainda não respondeu nenhuma pergunta.</p>
+            </div>
         <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>ID Pergunta</th>
-                        <th>Resposta</th>
-                        <th>Data/Hora</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($minhas as $r): ?>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-100">
                         <tr>
-                            <td><?php echo htmlspecialchars($r['id']); ?></td>
-                            <td><?php echo htmlspecialchars($r['id_pergunta']); ?></td>
-                            <td><?php echo htmlspecialchars($r['resposta_dada'] ?? $r['resposta'] ?? ''); ?></td>
-                            <td><?php echo htmlspecialchars($r['data_hora'] ?? $r['data_resposta'] ?? ''); ?></td>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Pergunta</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resposta</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <?php foreach ($minhas as $r): ?>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($r['id']); ?></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($r['id_pergunta']); ?></td>
+                                <td class="px-6 py-4"><?php echo htmlspecialchars($r['resposta_dada'] ?? $r['resposta'] ?? ''); ?></td>
+                                <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($r['data_hora'] ?? $r['data_resposta'] ?? ''); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         <?php endif; ?>
     </div>
 </body>
