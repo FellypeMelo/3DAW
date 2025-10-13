@@ -82,7 +82,6 @@ if (isset($_GET['status']) && $_GET['status'] === 'ok') {
     </div>
 
     <script>
-        // Carregar perguntas automaticamente ao abrir a página
         document.addEventListener('DOMContentLoaded', function() {
             carregarPerguntas();
         });

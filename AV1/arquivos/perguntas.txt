@@ -1,7 +1,7 @@
-1|texto|Qual é a cor do céu?||verde
+1|texto|Qual é a cor do céu?||Azulado
 2|multipla_escolha|Qual é a capital do Brasil?|Rio de Janeiro,São Paulo,Brasília,Salvador|Brasília
 3|texto|Quem descobriu o Brasil||Pedro
 4|multipla_escolha|Qual a Capital do Brasil|Pedro,Brasilia|Pedro
-5|multipla_escolha|Qual o seu nome|Roberto,Carlos,Pedrox,Juliano,Rocha|Pedrox
+5|multipla_escolha|Qual o seu nome|Roberto,Carlos,Pedrox,Juliano,Rocha|Juliano
 6|texto|Qual a cor da porta||Verde
 7|multipla_escolha|Qual é a cor?|azul,verde,vermelho,preto,branco|branco
