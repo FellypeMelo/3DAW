@@ -11,8 +11,6 @@ if ($_SESSION['tipo'] != 'admin') {
     exit;
 }
 
-$cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-$perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
 $mensagem = '';
 if (isset($_GET['status']) && $_GET['status'] === 'ok') {
     $mensagem = 'Resposta salva com sucesso!';
@@ -73,66 +71,22 @@ if (isset($_GET['status']) && $_GET['status'] === 'ok') {
         </div>
 
         <div id="perguntas-container">
-            <?php if (empty($perguntas)): ?>
-                <div class="bg-white rounded-xl shadow-lg p-8 text-center">
-                    <i class="fas fa-inbox text-4xl text-gray-400 mb-4"></i>
-                    <p class="text-gray-600 mb-4">Nenhuma pergunta cadastrada.</p>
-                    <a href="adicionar_pergunta.php" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
-                        Adicionar primeira Pergunta
-                    </a>
-                </div>
-            <?php else: ?>
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <table class="w-full">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resposta Correta</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-perguntas" class="divide-y divide-gray-200">
-                            <?php foreach ($perguntas as $pergunta): ?>
-                                <tr id="pergunta-<?php echo $pergunta['id']; ?>" class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($pergunta['id']); ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($pergunta['tipo']); ?></td>
-                                    <td class="px-6 py-4"><?php echo htmlspecialchars($pergunta['descricao']); ?></td>
-                                    <td class="px-6 py-4"><?php echo htmlspecialchars($pergunta['correta']); ?></td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex space-x-2">
-                                            <a href="ver_pergunta.php?id=<?php echo $pergunta['id']; ?>"
-                                               class="text-blue-600 hover:text-blue-900 transition-colors"
-                                               title="Ver Pergunta">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="editar_pergunta.php?id=<?php echo $pergunta['id']; ?>"
-                                               class="text-green-600 hover:text-green-900 transition-colors"
-                                               title="Editar Pergunta">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button onclick="excluirPergunta(<?php echo $pergunta['id']; ?>)"
-                                               class="text-red-600 hover:text-red-900 transition-colors"
-                                               title="Excluir Pergunta">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="mt-4 text-sm text-gray-600">
-                    <p><strong>Total de Perguntas:</strong> <span id="total-perguntas"><?php echo count($perguntas); ?></span></p>
-                </div>
-            <?php endif; ?>
+            <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+                <i class="fas fa-inbox text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-600 mb-4">Nenhuma pergunta carregada.</p>
+                <button onclick="carregarPerguntas()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                    Carregar Perguntas
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Carregar perguntas automaticamente ao abrir a página
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarPerguntas();
+        });
+
         function carregarPerguntas() {
             document.getElementById('loading').classList.remove('hidden');
             
@@ -159,32 +113,69 @@ if (isset($_GET['status']) && $_GET['status'] === 'ok') {
         }
 
         function atualizarTabelaPerguntas(perguntas) {
-            var tbody = document.getElementById('tbody-perguntas');
-            var totalSpan = document.getElementById('total-perguntas');
+            var container = document.getElementById('perguntas-container');
             
             if (perguntas.length === 0) {
-                document.getElementById('perguntas-container').innerHTML = 
+                container.innerHTML = 
                     '<div class="bg-white rounded-xl shadow-lg p-8 text-center"><i class="fas fa-inbox text-4xl text-gray-400 mb-4"></i><p class="text-gray-600 mb-4">Nenhuma pergunta cadastrada.</p></div>';
                 return;
             }
 
-            var html = '';
+            var html = `
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resposta Correta</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-perguntas" class="divide-y divide-gray-200">
+            `;
+
             perguntas.forEach(function(pergunta) {
-                html += '<tr id="pergunta-' + pergunta.id + '" class="hover:bg-gray-50">' +
-                    '<td class="px-6 py-4 whitespace-nowrap">' + pergunta.id + '</td>' +
-                    '<td class="px-6 py-4 whitespace-nowrap">' + pergunta.tipo + '</td>' +
-                    '<td class="px-6 py-4">' + pergunta.descricao + '</td>' +
-                    '<td class="px-6 py-4">' + pergunta.correta + '</td>' +
-                    '<td class="px-6 py-4 whitespace-nowrap">' +
-                    '<div class="flex space-x-2">' +
-                    '<a href="ver_pergunta.php?id=' + pergunta.id + '" class="text-blue-600 hover:text-blue-900 transition-colors" title="Ver Pergunta"><i class="fas fa-eye"></i></a>' +
-                    '<a href="editar_pergunta.php?id=' + pergunta.id + '" class="text-green-600 hover:text-green-900 transition-colors" title="Editar Pergunta"><i class="fas fa-edit"></i></a>' +
-                    '<button onclick="excluirPergunta(' + pergunta.id + ')" class="text-red-600 hover:text-red-900 transition-colors" title="Excluir Pergunta"><i class="fas fa-trash"></i></button>' +
-                    '</div></td></tr>';
+                html += `
+                <tr id="pergunta-${pergunta.id}" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">${pergunta.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${pergunta.tipo}</td>
+                    <td class="px-6 py-4">${pergunta.descricao}</td>
+                    <td class="px-6 py-4">${pergunta.correta}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex space-x-2">
+                            <a href="ver_pergunta.php?id=${pergunta.id}"
+                               class="text-blue-600 hover:text-blue-900 transition-colors"
+                               title="Ver Pergunta">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="editar_pergunta.php?id=${pergunta.id}"
+                               class="text-green-600 hover:text-green-900 transition-colors"
+                               title="Editar Pergunta">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button onclick="excluirPergunta(${pergunta.id})"
+                               class="text-red-600 hover:text-red-900 transition-colors"
+                               title="Excluir Pergunta">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
             });
-            
-            tbody.innerHTML = html;
-            totalSpan.textContent = perguntas.length;
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 text-sm text-gray-600">
+                    <p><strong>Total de Perguntas:</strong> <span id="total-perguntas">${perguntas.length}</span></p>
+                </div>
+            `;
+
+            container.innerHTML = html;
         }
 
         function excluirPergunta(id) {
@@ -203,8 +194,8 @@ if (isset($_GET['status']) && $_GET['status'] === 'ok') {
                             var response = JSON.parse(xhr.responseText);
                             if (response.success) {
                                 document.getElementById('pergunta-' + id).remove();
-                                document.getElementById('total-perguntas').textContent = 
-                                    parseInt(document.getElementById('total-perguntas').textContent) - 1;
+                                var totalElement = document.getElementById('total-perguntas');
+                                totalElement.textContent = parseInt(totalElement.textContent) - 1;
                                 mostrarMensagem('Pergunta excluída com sucesso!', 'success');
                             } else {
                                 mostrarMensagem('Erro: ' + response.message, 'error');
@@ -222,7 +213,6 @@ if (isset($_GET['status']) && $_GET['status'] === 'ok') {
         }
 
         function mostrarMensagem(mensagem, tipo) {
-            // Criar elemento de mensagem se não existir
             var existingMsg = document.getElementById('mensagem-dinamica');
             if (existingMsg) existingMsg.remove();
 
