@@ -1,112 +1,91 @@
 <?php
+// src/php/funcoes.php
 
-// Constantes para os caminhos dos arquivos de dados
-const USERS_FILE = '../../arquivos/users.txt';
-const QUESTIONS_FILE = '../../arquivos/perguntas.txt';
-const ANSWERS_FILE = '../../arquivos/respostas_users.txt';
-
+require_once 'cnx.php';
 
 /**
- * Gera o próximo ID disponível para um array de dados.
- *
- * @param array $dados Array de dados onde cada item possui uma chave 'id'.
- * @return int O próximo ID disponível.
+ * Gera o próximo ID disponível para uma tabela (para compatibilidade com código existente)
+ * Nota: Em MySQL usamos AUTO_INCREMENT, mas mantemos para compatibilidade
  */
-function gerarId(array $dados): int {
-    if (empty($dados)) {
-        return 1;
-    }
-    $maxId = 0;
-    foreach ($dados as $item) {
-        if (isset($item['id']) && $item['id'] > $maxId) {
-            $maxId = $item['id'];
-        }
-    }
-    return $maxId + 1;
+function gerarId($tabela): int {
+    $conn = getDbConnection();
+    $stmt = $conn->query("SELECT MAX(id) as max_id FROM $tabela");
+    $result = $stmt->fetch();
+    return ($result['max_id'] ?? 0) + 1;
 }
 
 /**
- * Lê dados de um arquivo e retorna um array de arrays associativos.
- *
- * @param string $caminhoArquivo O caminho completo do arquivo.
- * @param array $cabecalhos Um array que define os nomes das chaves para cada coluna.
- * @return array Um array de arrays associativos contendo os dados lidos do arquivo.
+ * Lê dados de uma tabela - mantém compatibilidade com interface antiga
  */
-function lerDados(string $caminhoArquivo, array $cabecalhos): array {
-    if (!file_exists($caminhoArquivo)) {
+function lerDados($tabela, $cabecalhos = []): array {
+    $conn = getDbConnection();
+    
+    try {
+        $stmt = $conn->query("SELECT * FROM $tabela ORDER BY id");
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        error_log("Erro ao ler dados da tabela $tabela: " . $e->getMessage());
         return [];
     }
-    $conteudo = file_get_contents($caminhoArquivo);
-    $linhas = explode(PHP_EOL, $conteudo);
-    $dados = [];
-    foreach ($linhas as $linha) {
-        $linha = trim($linha);
-        if (!empty($linha)) {
-            $campos = explode('|', $linha);
-            // Garante que o número de cabeçalhos e campos seja o mesmo para evitar erros
-            if (count($cabecalhos) === count($campos)) {
-                $dados[] = array_combine($cabecalhos, $campos);
-            } else {
-                // Opcional: logar um erro ou pular a linha mal formatada
-                error_log("Linha mal formatada no arquivo {$caminhoArquivo}: {$linha}");
+}
+
+/**
+ * Salva dados em uma tabela - função genérica para INSERT/UPDATE
+ */
+function salvarDados($tabela, $dados): bool {
+    $conn = getDbConnection();
+    
+    try {
+        // Se o dado tem ID, é UPDATE, senão INSERT
+        if (isset($dados['id']) && !empty($dados['id'])) {
+            $setParts = [];
+            $params = [];
+            foreach ($dados as $key => $value) {
+                if ($key !== 'id') {
+                    $setParts[] = "$key = ?";
+                    $params[] = $value;
+                }
             }
+            $params[] = $dados['id'];
+            $sql = "UPDATE $tabela SET " . implode(', ', $setParts) . " WHERE id = ?";
+        } else {
+            $keys = array_keys($dados);
+            $placeholders = str_repeat('?,', count($keys) - 1) . '?';
+            $sql = "INSERT INTO $tabela (" . implode(', ', $keys) . ") VALUES ($placeholders)";
+            $params = array_values($dados);
         }
+        
+        $stmt = $conn->prepare($sql);
+        return $stmt->execute($params);
+    } catch (PDOException $e) {
+        error_log("Erro ao salvar dados na tabela $tabela: " . $e->getMessage());
+        return false;
     }
-    return $dados;
 }
 
-/**
- * Salva um array de dados em um arquivo, sobrescrevendo o conteúdo existente.
- * Cada item do array é codificado como JSON e escrito em uma nova linha.
- *
- * @param string $caminhoArquivo O caminho completo do arquivo.
- * @param array $dados O array de dados a ser salvo.
- * @return bool True se os dados foram salvos com sucesso, false caso contrário.
- */
-/**
- * Salva um array de dados em um arquivo, sobrescrevendo o conteúdo existente.
- * Cada item do array é formatado com '|' como separador e escrito em uma nova linha.
- *
- * @param string $caminhoArquivo O caminho completo do arquivo.
- * @param array $dados O array de dados a ser salvo.
- * @return bool True se os dados foram salvos com sucesso, false caso contrário.
- */
-function salvarDados(string $caminhoArquivo, array $dados): bool {
-    $conteudo = '';
-    foreach ($dados as $item) {
-        $conteudo .= implode('|', $item) . PHP_EOL;
-    }
-    // Remove a última quebra de linha extra se houver dados
-    if (!empty($conteudo)) {
-        $conteudo = rtrim($conteudo, PHP_EOL);
-    }
-    return file_put_contents($caminhoArquivo, $conteudo, LOCK_EX) !== false;
-}
-
+// Funções específicas para manter compatibilidade
 function lerPerguntas(): array {
-    $cabecalhos = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-    return lerDados(QUESTIONS_FILE, $cabecalhos);
+    $conn = getDbConnection();
+    $stmt = $conn->query("SELECT * FROM perguntas ORDER BY id");
+    return $stmt->fetchAll();
 }
 
 function salvarPerguntas(array $perguntas): bool {
-    return salvarDados(QUESTIONS_FILE, $perguntas);
+    // Esta função não é mais necessária da mesma forma, mas mantemos para compatibilidade
+    // O código deve ser adaptado para usar salvarDados diretamente
+    return true;
 }
 
 function converterStringParaArray(string $string, string $delimitador = ','): array {
-    return explode($delimitador, $string);
+    return array_map('trim', explode($delimitador, $string));
 }
 
 function converterArrayParaString(array $array, string $delimitador = ','): string {
-    return implode($delimitador, $array);
+    return implode($delimitador, array_map('trim', $array));
 }
-
 
 /**
  * Verifica se o usuário está logado e se possui o tipo de perfil necessário.
- * Redireciona para a página de login se a sessão não for válida ou o perfil não for permitido.
- *
- * @param array $tiposPermitidos Array de strings com os tipos de usuário permitidos (ex: ['admin', 'user']).
- *                               Se vazio, apenas verifica se o usuário está logado.
  */
 function verificarAcesso(array $tiposPermitidos = []): void {
     if (session_status() === PHP_SESSION_NONE) {
@@ -124,4 +103,58 @@ function verificarAcesso(array $tiposPermitidos = []): void {
     }
 }
 
+// Novas funções específicas para MySQL
+function buscarUsuarioPorEmail($email) {
+    $conn = getDbConnection();
+    $stmt = $conn->prepare("SELECT * FROM usuarios WHERE email = ?");
+    $stmt->execute([$email]);
+    return $stmt->fetch();
+}
+
+function buscarPerguntaPorId($id) {
+    $conn = getDbConnection();
+    $stmt = $conn->prepare("SELECT * FROM perguntas WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch();
+}
+
+function buscarRespostasPorUsuario($usuarioId) {
+    $conn = getDbConnection();
+    $stmt = $conn->prepare("
+        SELECT r.*, p.descricao as pergunta_descricao 
+        FROM respostas r 
+        LEFT JOIN perguntas p ON r.id_pergunta = p.id 
+        WHERE r.id_usuario = ? 
+        ORDER BY r.data_hora DESC
+    ");
+    $stmt->execute([$usuarioId]);
+    return $stmt->fetchAll();
+}
+
+function inserirResposta($dados) {
+    return salvarDados('respostas', $dados);
+}
+
+function excluirResposta($id) {
+    $conn = getDbConnection();
+    $stmt = $conn->prepare("DELETE FROM respostas WHERE id = ?");
+    return $stmt->execute([$id]);
+}
+
+function buscarTodasRespostas() {
+    $conn = getDbConnection();
+    $stmt = $conn->query("
+        SELECT r.*, u.nome as usuario_nome, p.descricao as pergunta_descricao 
+        FROM respostas r 
+        LEFT JOIN usuarios u ON r.id_usuario = u.id 
+        LEFT JOIN perguntas p ON r.id_pergunta = p.id 
+        ORDER BY r.data_hora DESC
+    ");
+    return $stmt->fetchAll();
+}
+
+// Constantes para compatibilidade (não são mais arquivos)
+define('USERS_TABLE', 'usuarios');
+define('QUESTIONS_TABLE', 'perguntas');
+define('ANSWERS_TABLE', 'respostas');
 ?>

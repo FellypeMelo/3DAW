@@ -25,24 +25,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($erros)) {
-        $cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-        $perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
-
         $novaPergunta = [
-            'id' => gerarId($perguntas),
             'tipo' => $dadosFormulario['tipo'],
             'descricao' => $dadosFormulario['descricao'],
             'opcoes' => '',
             'correta' => $dadosFormulario['resposta']
         ];
 
-        $perguntas[] = $novaPergunta;
-
-        if (salvarDados(QUESTIONS_FILE, $perguntas)) {
-            header('Location: listar_perguntas.php?msg=adicionado');
+        if (salvarDados(QUESTIONS_TABLE, $novaPergunta)) {
+            header('Location: listar_perguntas.php?msg=Pergunta adicionada com sucesso!');
             exit;
         } else {
-            $erros[] = 'Erro ao salvar pergunta.';
+            $erros[] = 'Erro ao salvar pergunta no banco de dados.';
         }
     }
 }
@@ -144,21 +138,19 @@ function exibirErros(array $erros) {
                 <div class="flex flex-wrap gap-4 justify-between items-center pt-6 border-t border-gray-200">
                     <div class="flex gap-3">
                         <button 
-                            type="button" 
-                            onclick="salvarPergunta()" 
+                            type="submit"
                             class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center"
                         >
                             <i class="fas fa-save mr-2"></i>
                             Salvar Pergunta
                         </button>
-                        <button 
-                            type="button" 
-                            onclick="salvarEAdicionarOutra()" 
+                        <a 
+                            href="adicionar_pergunta.php" 
                             class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center"
                         >
                             <i class="fas fa-plus-circle mr-2"></i>
-                            Salvar e Adicionar Outra
-                        </button>
+                            Adicionar Outra
+                        </a>
                     </div>
                     <a 
                         href="listar_perguntas.php" 
@@ -189,76 +181,14 @@ function exibirErros(array $erros) {
     </div>
 
     <script>
-        function salvarPergunta(adicionarOutra = false) {
-            var form = document.getElementById('form-pergunta');
-            var formData = new FormData(form);
+        // Adicionar loading no submit do formulário
+        document.getElementById('form-pergunta').addEventListener('submit', function(e) {
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
             
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('mensagem-ajax').classList.add('hidden');
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', 'api_adicionar_pergunta.php', true);
-            
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    document.getElementById('loading').classList.add('hidden');
-                    
-                    if (xhr.status === 200) {
-                        try {
-                            var response = JSON.parse(xhr.responseText);
-                            
-                            if (response.success) {
-                                mostrarMensagem('Pergunta salva com sucesso!', 'success');
-                                
-                                if (adicionarOutra) {
-                                    // Limpar formulário para nova pergunta
-                                    form.reset();
-                                    document.getElementById('descricao').focus();
-                                } else {
-                                    // Redirecionar após 1 segundo
-                                    setTimeout(function() {
-                                        window.location.href = 'listar_perguntas.php';
-                                    }, 1000);
-                                }
-                            } else {
-                                mostrarMensagem('Erro: ' + response.message, 'error');
-                            }
-                        } catch (e) {
-                            mostrarMensagem('Erro ao processar resposta do servidor', 'error');
-                        }
-                    } else {
-                        mostrarMensagem('Erro de comunicação com o servidor', 'error');
-                    }
-                }
-            };
-            
-            xhr.send(formData);
-        }
-
-        function salvarEAdicionarOutra() {
-            salvarPergunta(true);
-        }
-
-        function mostrarMensagem(mensagem, tipo) {
-            var div = document.getElementById('mensagem-ajax');
-            div.textContent = mensagem;
-            div.className = tipo === 'success' 
-                ? 'bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 mb-6' 
-                : 'bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6';
-            div.classList.remove('hidden');
-            
-            var icon = tipo === 'success' 
-                ? '<i class="fas fa-check-circle mr-2"></i>' 
-                : '<i class="fas fa-exclamation-triangle mr-2"></i>';
-            
-            div.innerHTML = icon + mensagem;
-            
-            setTimeout(function() {
-                if (tipo === 'success' && !div.textContent.includes('outra')) {
-                    div.classList.add('hidden');
-                }
-            }, 3000);
-        }
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
+            button.disabled = true;
+        });
 
         // Validação em tempo real
         document.getElementById('descricao').addEventListener('blur', validarDescricao);

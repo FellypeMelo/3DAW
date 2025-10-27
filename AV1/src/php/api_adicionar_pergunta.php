@@ -22,22 +22,21 @@ if (empty($descricao) || empty($resposta)) {
     exit;
 }
 
-$cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-$perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
+try {
+    $novaPergunta = [
+        'tipo' => 'texto',
+        'descricao' => $descricao,
+        'opcoes' => '',
+        'correta' => $resposta
+    ];
 
-$novaPergunta = [
-    'id' => gerarId($perguntas),
-    'tipo' => 'texto',
-    'descricao' => $descricao,
-    'opcoes' => '',
-    'correta' => $resposta
-];
-
-$perguntas[] = $novaPergunta;
-
-if (salvarDados(QUESTIONS_FILE, $perguntas)) {
-    echo json_encode(['success' => true, 'message' => 'Pergunta adicionada com sucesso']);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Erro ao salvar pergunta']);
+    if (salvarDados(QUESTIONS_TABLE, $novaPergunta)) {
+        echo json_encode(['success' => true, 'message' => 'Pergunta adicionada com sucesso']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Erro ao salvar pergunta no banco de dados']);
+    }
+} catch (Exception $e) {
+    error_log("Erro API adicionar pergunta: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
 }
 ?>

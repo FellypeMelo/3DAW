@@ -16,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $descricao = trim($_POST['descricao'] ?? '');
 $opcoes = $_POST['opcoes'] ?? [];
+$correta = $_POST['correta'] ?? '';
 
-// Garantir exatamente 5 opções
 $opcoes = array_slice($opcoes, 0, 5);
 while (count($opcoes) < 5) {
     $opcoes[] = '';
@@ -31,31 +31,29 @@ if (empty($descricao) || count($opcoesNaoVazias) < 2) {
     exit;
 }
 
-$indiceCorreta = isset($_POST['correta']) ? intval($_POST['correta']) - 1 : -1;
-if ($indiceCorreta < 0 || $indiceCorreta >= count($opcoes) || $opcoes[$indiceCorreta] === '') {
+if (empty($correta) || !isset($opcoes[$correta - 1]) || $opcoes[$correta - 1] === '') {
     echo json_encode(['success' => false, 'message' => 'Selecione uma opção correta válida']);
     exit;
 }
 
-$cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-$perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
+try {
+    $opcoesString = converterArrayParaString($opcoes);
+    $respostaCorretaTexto = $opcoes[$correta - 1];
 
-$opcoesString = converterArrayParaString($opcoes);
-$respostaCorretaTexto = $opcoes[$indiceCorreta];
+    $novaPergunta = [
+        'tipo' => 'multipla_escolha',
+        'descricao' => $descricao,
+        'opcoes' => $opcoesString,
+        'correta' => $respostaCorretaTexto
+    ];
 
-$novaPergunta = [
-    'id' => gerarId($perguntas),
-    'tipo' => 'multipla_escolha',
-    'descricao' => $descricao,
-    'opcoes' => $opcoesString,
-    'correta' => $respostaCorretaTexto
-];
-
-$perguntas[] = $novaPergunta;
-
-if (salvarDados(QUESTIONS_FILE, $perguntas)) {
-    echo json_encode(['success' => true, 'message' => 'Pergunta adicionada com sucesso']);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Erro ao salvar pergunta']);
+    if (salvarDados(QUESTIONS_TABLE, $novaPergunta)) {
+        echo json_encode(['success' => true, 'message' => 'Pergunta adicionada com sucesso']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Erro ao salvar pergunta no banco de dados']);
+    }
+} catch (Exception $e) {
+    error_log("Erro API adicionar pergunta ME: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
 }
 ?>
