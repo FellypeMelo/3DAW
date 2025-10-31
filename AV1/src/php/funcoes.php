@@ -36,6 +36,43 @@ function salvarDados($tabela, $dados): bool {
     $conn = getDbConnection();
     
     try {
+        // Suporta dois formatos para compatibilidade:
+        // 1) $dados é um array associativo -> inserir/atualizar um registro
+        // 2) $dados é um array indexado de arrays associativos -> substituir todo o conteúdo da tabela
+        $isListOfRows = is_array($dados) && count($dados) > 0 && array_values($dados) === $dados && is_array($dados[0]);
+
+        if ($isListOfRows) {
+            // Substitui todo o conteúdo da tabela por um conjunto de linhas (compatibilidade com 'arquivo' antigo)
+            try {
+                $conn->beginTransaction();
+                $conn->exec("DELETE FROM $tabela");
+
+                if (count($dados) > 0) {
+                    $firstRow = $dados[0];
+                    $keys = array_keys($firstRow);
+                    $placeholders = implode(',', array_fill(0, count($keys), '?'));
+                    $sql = "INSERT INTO $tabela (" . implode(', ', $keys) . ") VALUES ($placeholders)";
+                    $stmt = $conn->prepare($sql);
+
+                    foreach ($dados as $row) {
+                        // Garante a ordem dos parâmetros igual às chaves
+                        $params = [];
+                        foreach ($keys as $k) {
+                            $params[] = $row[$k] ?? null;
+                        }
+                        $stmt->execute($params);
+                    }
+                }
+
+                $conn->commit();
+                return true;
+            } catch (PDOException $e) {
+                $conn->rollBack();
+                error_log("Erro ao substituir dados na tabela $tabela: " . $e->getMessage());
+                return false;
+            }
+        }
+
         // Se o dado tem ID, é UPDATE, senão INSERT
         if (isset($dados['id']) && !empty($dados['id'])) {
             $setParts = [];
@@ -153,8 +190,35 @@ function buscarTodasRespostas() {
     return $stmt->fetchAll();
 }
 
+function excluirPergunta($id) {
+    $conn = getDbConnection();
+    $stmt = $conn->prepare("DELETE FROM perguntas WHERE id = ?");
+    return $stmt->execute([$id]);
+}
+
+function buscarRespostaPorId($id) {
+    $conn = getDbConnection();
+    $stmt = $conn->prepare("SELECT * FROM respostas WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch();
+}
+
+function atualizarResposta($id, $resposta_dada) {
+    return salvarDados(ANSWERS_TABLE, ['id' => $id, 'resposta_dada' => $resposta_dada]);
+}
+
+function excluirUsuario($id) {
+    $conn = getDbConnection();
+    $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = ?");
+    return $stmt->execute([$id]);
+}
+
 // Constantes para compatibilidade (não são mais arquivos)
 define('USERS_TABLE', 'usuarios');
 define('QUESTIONS_TABLE', 'perguntas');
 define('ANSWERS_TABLE', 'respostas');
+// Compatibilidade: alguns arquivos antigos usam constante _FILE; mapeamos para o nome da tabela
+define('USERS_FILE', USERS_TABLE);
+define('QUESTIONS_FILE', QUESTIONS_TABLE);
+define('ANSWERS_FILE', ANSWERS_TABLE);
 ?>

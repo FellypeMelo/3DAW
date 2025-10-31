@@ -2,13 +2,14 @@
 require_once 'funcoes.php';
 session_start();
 
-$caminhoArquivo = '../../arquivos/users.txt';
+// Usar tabela de usuários no lugar de arquivo
+$caminhoTabela = USERS_TABLE;
 
 // Se confirmado via POST, proceder com a exclusão
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $idParaExcluir = $_POST['id'];
     $cabecalhosUsuarios = ['id', 'tipo', 'nome', 'email', 'senha'];
-    $usuarios = lerDados($caminhoArquivo, $cabecalhosUsuarios);
+    $usuarios = lerDados($caminhoTabela, $cabecalhosUsuarios);
     $usuariosAtualizados = [];
     $usuarioEncontrado = false;
 
@@ -20,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
         }
     }
 
-    if ($usuarioEncontrado) {
-        salvarDados($caminhoArquivo, $usuariosAtualizados);
+        if ($usuarioEncontrado) {
+        salvarDados($caminhoTabela, $usuariosAtualizados);
         header('Location: listar_usuarios.php?msg=excluido');
         exit();
     } else {
@@ -34,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
 if (isset($_GET['id'])) {
     $idParaExcluir = $_GET['id'];
     $cabecalhosUsuarios = ['id', 'tipo', 'nome', 'email', 'senha'];
-    $usuarios = lerDados($caminhoArquivo, $cabecalhosUsuarios);
+    $usuarios = lerDados($caminhoTabela, $cabecalhosUsuarios);
     $usuarioParaExcluir = null;
 
     foreach ($usuarios as $usuario) {

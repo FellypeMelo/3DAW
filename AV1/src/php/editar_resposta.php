@@ -4,17 +4,12 @@ session_start();
 verificarAcesso(['admin']);
 
 $id = $_GET['id'] ?? null;
-$cabecalhosRespostas = ['id', 'id_usuario', 'id_pergunta', 'resposta_dada', 'data_hora'];
-$respostas = lerDados(ANSWERS_FILE, $cabecalhosRespostas);
 $erro = '';
 $respostaAtual = null;
+
 if ($id) {
-    foreach ($respostas as $r) {
-        if ($r['id'] == $id) {
-            $respostaAtual = $r;
-            break;
-        }
-    }
+    // Buscar resposta diretamente no banco
+    $respostaAtual = buscarRespostaPorId($id);
 }
 
 if (!$respostaAtual) {
@@ -22,27 +17,7 @@ if (!$respostaAtual) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nova = trim($_POST['resposta_dada'] ?? '');
-    if ($nova === '') {
-        $erro = 'Resposta não pode ser vazia.';
-    } else {
-        foreach ($respostas as &$r) {
-            if ($r['id'] == $id) {
-                $r['resposta_dada'] = $nova;
-                $r['data_hora'] = date('Y-m-d H:i:s');
-                break;
-            }
-        }
-        unset($r);
-        if (salvarDados(ANSWERS_FILE, $respostas)) {
-            header('Location: listar_respostas.php?msg=Resposta atualizada');
-            exit;
-        } else {
-            $erro = 'Erro ao salvar.';
-        }
-    }
-}
+// Remover processamento POST - será feito via API
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -150,5 +125,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const respostaInput = form.querySelector('[name="resposta_dada"]');
+                const resposta = respostaInput.value.trim();
+                
+                if (!resposta) {
+                    mostrarMensagem('Resposta não pode ser vazia', 'error');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('id', '<?php echo htmlspecialchars($id); ?>');
+                formData.append('resposta_dada', resposta);
+
+                // Desabilitar botão durante o envio
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
+
+                fetch('api_editar_resposta.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        mostrarMensagem(data.message, 'success');
+                        setTimeout(() => {
+                            window.location.href = 'listar_respostas.php?msg=atualizado';
+                        }, 1500);
+                    } else {
+                        mostrarMensagem(data.message, 'error');
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    mostrarMensagem('Erro ao comunicar com o servidor', 'error');
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                });
+            });
+        });
+
+        function mostrarMensagem(mensagem, tipo) {
+            const alertas = document.querySelector('.bg-red-50, .bg-green-50, .bg-yellow-50');
+            if (alertas) {
+                alertas.remove();
+            }
+
+            const div = document.createElement('div');
+            div.className = tipo === 'error' 
+                ? 'bg-red-50 border border-red-200 rounded-lg p-4 mb-6'
+                : 'bg-green-50 border border-green-200 rounded-lg p-4 mb-6';
+            
+            div.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${tipo === 'error' ? 'exclamation-triangle text-red-500' : 'check-circle text-green-500'} mr-3"></i>
+                    <span class="${tipo === 'error' ? 'text-red-700' : 'text-green-700'}">${mensagem}</span>
+                </div>
+            `;
+
+            const form = document.querySelector('form');
+            form.parentNode.insertBefore(div, form);
+        }
+    </script>
 </body>
 </html>

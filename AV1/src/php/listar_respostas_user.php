@@ -12,22 +12,15 @@ if (isset($_SESSION['user'])) {
     if (is_array($_SESSION['user']) && isset($_SESSION['user']['id'])) {
         $userId = $_SESSION['user']['id'];
     } elseif (is_string($_SESSION['user'])) {
-        $cabecalhosUsuarios = ['id', 'tipo', 'nome', 'email', 'senha'];
-        $usuarios = lerDados(USERS_FILE, $cabecalhosUsuarios);
-        foreach ($usuarios as $u) {
-            if (isset($u['nome']) && $u['nome'] === $_SESSION['user']) {
-                $userId = $u['id'];
-                break;
-            }
+        // Buscar usuário diretamente no banco
+        $usuario = buscarUsuarioPorEmail($_SESSION['user']);
+        if ($usuario) {
+            $userId = $usuario['id'];
         }
     }
 }
-$cabecalhosRespostas = ['id', 'id_usuario', 'id_pergunta', 'resposta_dada', 'data_hora'];
-$respostas = lerDados(ANSWERS_FILE, $cabecalhosRespostas);
-
-$minhas = array_filter($respostas, function($r) use ($userId) {
-    return isset($r['id_usuario']) && $r['id_usuario'] == $userId;
-});
+// Carregar somente as respostas do usuário
+$minhas = buscarRespostasPorUsuario($userId);
 
 ?>
 <!DOCTYPE html>

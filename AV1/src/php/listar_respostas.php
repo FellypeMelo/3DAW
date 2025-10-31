@@ -13,7 +13,7 @@ if ($_SESSION['tipo'] != 'admin') {
 }
 
 $cabecalhosRespostas = ['id', 'id_usuario', 'id_pergunta', 'resposta_dada', 'data_hora'];
-$respostas = lerDados(ANSWERS_FILE, $cabecalhosRespostas);
+$respostas = lerDados(ANSWERS_TABLE, $cabecalhosRespostas);
 $mensagem = $_GET['msg'] ?? '';
 ?>
 

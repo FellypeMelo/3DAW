@@ -12,14 +12,8 @@ $pergunta = null;
 $perguntaId = $_GET['id'] ?? null;
 
 if ($perguntaId) {
-    $cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-    $perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
-    foreach ($perguntas as $p) {
-        if ($p['id'] == $perguntaId) {
-            $pergunta = $p;
-            break;
-        }
-    }
+    // Buscar pergunta diretamente no banco
+    $pergunta = buscarPerguntaPorId($perguntaId);
 
     if (!$pergunta) {
         $erros[] = 'Pergunta não encontrada.';
@@ -38,47 +32,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($erros) && $pergunta) {
         if (is_array($_SESSION['user']) && isset($_SESSION['user']['id'])) {
             $id_usuario = $_SESSION['user']['id'];
         } elseif (is_string($_SESSION['user'])) {
-            $cabecalhosUsuarios = ['id', 'tipo', 'nome', 'email', 'senha'];
-            $usuarios = lerDados(USERS_FILE, $cabecalhosUsuarios);
-            foreach ($usuarios as $u) {
-                if (isset($u['nome']) && $u['nome'] === $_SESSION['user']) {
-                    $id_usuario = $u['id'];
-                    break;
-                }
+            // Buscar usuário diretamente no banco pelo nome/email
+            $usuario = buscarUsuarioPorEmail($_SESSION['user']);
+            if ($usuario) {
+                $id_usuario = $usuario['id'];
             }
         }
     }
+
     $id_pergunta = $pergunta['id'] ?? null;
     $resposta = $_POST['resposta_usuario'] ?? '';
 
     if (!$id_usuario) {
         $erros[] = 'ID do usuário não encontrado na sessão.';
     }
-    if (!$id_pergunta) {
-        $erros[] = 'ID da pergunta não encontrado.';
-    }
-    if (empty($resposta)) {
-        $erros[] = 'A resposta não pode ser vazia.';
-    }
 
-    if (empty($erros)) {
-        $cabecalhosRespostas = ['id', 'id_usuario', 'id_pergunta', 'resposta_dada', 'data_hora'];
-        $respostasExistentes = lerDados(ANSWERS_FILE, $cabecalhosRespostas);
-        $novoId = gerarId($respostasExistentes);
-        $novaResposta = [
-            'id' => $novoId,
-            'id_usuario' => $id_usuario,
-            'id_pergunta' => $id_pergunta,
-            'resposta_dada' => $resposta,
-            'data_hora' => date('Y-m-d H:i:s')
-        ];
-        $respostasExistentes[] = $novaResposta;
+    if (empty($erros) && $perguntaId) {
+        // Buscar pergunta diretamente no banco para garantir dados atualizados
+        $pergunta = buscarPerguntaPorId($perguntaId);
 
-        if (salvarDados(ANSWERS_FILE, $respostasExistentes)) {
-            header('Location: listar_perguntas_user.php?status=ok');
-            exit;
+        if (!$pergunta) {
+            $erros[] = 'Pergunta não encontrada.';
         } else {
-            $erros[] = 'Erro ao salvar a resposta.';
+            if ($pergunta['tipo'] === 'multipla_escolha') {
+                $pergunta['opcoes_detalhes'] = converterStringParaArray($pergunta['opcoes']);
+            }
+
+            // Inserir resposta no banco
+            $inserido = inserirResposta($id_usuario, $id_pergunta, $resposta);
+            if ($inserido) {
+                // Redireciona de acordo com o tipo de usuário
+                if (isset($_SESSION['tipo']) && $_SESSION['tipo'] === 'admin') {
+                    header('Location: listar_perguntas.php?status=ok');
+                } else {
+                    header('Location: listar_perguntas_user.php?status=ok');
+                }
+                exit;
+            } else {
+                $erros[] = 'Erro ao salvar a resposta.';
+            }
         }
     }
 }

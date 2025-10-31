@@ -7,18 +7,9 @@ $id = $_GET['id'] ?? null;
 
 // Se confirmado via POST, proceder com a exclusão
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
-    $cabecalhosRespostas = ['id', 'id_usuario', 'id_pergunta', 'resposta_dada', 'data_hora'];
-    $respostas = lerDados(ANSWERS_FILE, $cabecalhosRespostas);
-    
-    $filtradas = array_filter($respostas, function($r) use ($id) {
-        return $r['id'] != $id;
-    });
-    
-    if (count($filtradas) < count($respostas)) {
-        if (salvarDados(ANSWERS_FILE, array_values($filtradas))) {
-            header('Location: listar_respostas.php?msg=excluido');
-            exit;
-        }
+    if (excluirResposta($id)) {
+        header('Location: listar_respostas.php?msg=excluido');
+        exit;
     }
     header('Location: listar_respostas.php?msg=erro');
     exit;
@@ -26,16 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id) {
 
 // Se não for POST, mostrar página de confirmação
 if ($id) {
-    $cabecalhosRespostas = ['id', 'id_usuario', 'id_pergunta', 'resposta_dada', 'data_hora'];
-    $respostas = lerDados(ANSWERS_FILE, $cabecalhosRespostas);
-    $respostaAtual = null;
-    
-    foreach ($respostas as $r) {
-        if ($r['id'] == $id) {
-            $respostaAtual = $r;
-            break;
-        }
-    }
+    // Buscar a resposta diretamente no banco
+    $respostaAtual = buscarRespostaPorId($id);
     
     if (!$respostaAtual) {
         header('Location: listar_respostas.php?msg=nao_encontrada');

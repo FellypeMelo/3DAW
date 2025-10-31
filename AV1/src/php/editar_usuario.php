@@ -1,9 +1,8 @@
 <?php
 require_once 'funcoes.php';
 session_start();
-$caminhoArquivo = '../../arquivos/users.txt';
 $cabecalhosUsuarios = ['id', 'tipo', 'nome', 'email', 'senha'];
-$usuarios = lerDados($caminhoArquivo, $cabecalhosUsuarios);
+$usuarios = lerDados(USERS_TABLE, $cabecalhosUsuarios);
 $usuarioParaEditar = null;
 
 if (isset($_GET['id'])) {
@@ -42,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    salvarDados($caminhoArquivo, $usuarios);
+    salvarDados(USERS_TABLE, $usuarios);
     header('Location: listar_usuarios.php');
     exit();
 }

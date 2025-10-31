@@ -80,7 +80,7 @@ require_once 'funcoes.php';
                     </div>
                     <span class="text-3xl font-bold"><?php 
                         $cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-                        $perguntas = file_exists(QUESTIONS_FILE) ? lerDados(QUESTIONS_FILE, $cabecalhosPerguntas) : [];
+                        $perguntas = lerDados(QUESTIONS_TABLE, $cabecalhosPerguntas);
                         echo count($perguntas);
                     ?></span>
                 </div>
@@ -96,7 +96,7 @@ require_once 'funcoes.php';
                     </div>
                     <span class="text-3xl font-bold"><?php 
                         $cabecalhosUsuarios = ['id', 'tipo', 'nome', 'email', 'senha'];
-                        $usuarios = file_exists(USERS_FILE) ? lerDados(USERS_FILE, $cabecalhosUsuarios) : [];
+                        $usuarios = lerDados(USERS_TABLE, $cabecalhosUsuarios);
                         echo count($usuarios);
                     ?></span>
                 </div>
@@ -111,8 +111,9 @@ require_once 'funcoes.php';
                         <i class="fas fa-comments text-2xl text-purple-300"></i>
                     </div>
                     <span class="text-3xl font-bold"><?php 
-                        $cabecalhosRespostas = ['id', 'user_id', 'pergunta_id', 'resposta', 'data_hora'];
-                        $respostas = file_exists(ANSWERS_FILE) ? lerDados(ANSWERS_FILE, $cabecalhosRespostas) : [];
+                        // Para compatibilidade com o banco, usamos os nomes reais das colunas de respostas
+                        $cabecalhosRespostas = ['id', 'id_usuario', 'id_pergunta', 'resposta_dada', 'data_hora'];
+                        $respostas = lerDados(ANSWERS_TABLE, $cabecalhosRespostas);
                         echo count($respostas);
                     ?></span>
                 </div>

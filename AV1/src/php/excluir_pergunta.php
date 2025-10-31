@@ -15,46 +15,22 @@ $perguntaId = $_GET['id'] ?? null;
 
 // Se confirmado via POST, proceder com a exclusão
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $perguntaId) {
-    $cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-    $perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
-    $perguntasAtualizadas = [];
-    $encontrada = false;
+    // Excluir pergunta direto no banco
 
-    foreach ($perguntas as $p) {
-        if ($p['id'] == $perguntaId) {
-            $encontrada = true;
-        } else {
-            $perguntasAtualizadas[] = $p;
-        }
-    }
-
-    if ($encontrada) {
-        if (salvarDados(QUESTIONS_FILE, $perguntasAtualizadas)) {
+        // Excluir pergunta direto no banco
+        if (excluirPergunta($perguntaId)) {
             header('Location: listar_perguntas.php?msg=excluido');
             exit;
         } else {
-            header('Location: listar_perguntas.php?erro=salvar');
+            header('Location: listar_perguntas.php?erro=nao_excluida');
             exit;
         }
-    } else {
-        header('Location: listar_perguntas.php?erro=nao_encontrada');
-        exit;
-    }
 }
 
 // Se não for POST, mostrar página de confirmação
 if ($perguntaId) {
-    $cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-    $perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
-    $pergunta = null;
-    
-    foreach ($perguntas as $p) {
-        if ($p['id'] == $perguntaId) {
-            $pergunta = $p;
-            break;
-        }
-    }
-    
+    // Buscar pergunta no banco
+    $pergunta = buscarPerguntaPorId($perguntaId);
     if (!$pergunta) {
         header('Location: listar_perguntas.php?erro=nao_encontrada');
         exit;

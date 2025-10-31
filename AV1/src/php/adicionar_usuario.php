@@ -41,20 +41,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($erros)) {
-        $cabecalhosUsuarios = ['id', 'tipo', 'nome', 'email', 'senha'];
-        $usuarios = lerDados(USERS_FILE, $cabecalhosUsuarios);
-
+        // Inserir usuário no banco de dados (ID será gerado automaticamente)
         $novoUsuario = [
-            'id' => gerarId($usuarios), 
-            'tipo' => strtoupper($dadosFormulario['tipo']),
+            'tipo' => strtolower($dadosFormulario['tipo']) === 'adm' ? 'admin' : 'user',
             'nome' => $dadosFormulario['nome'],
             'email' => $dadosFormulario['email'],
             'senha' => password_hash($dadosFormulario['senha'], PASSWORD_DEFAULT)
         ];
 
-        $usuarios[] = $novoUsuario;
-
-        if (salvarDados(USERS_FILE, $usuarios)) {
+        if (salvarDados(USERS_TABLE, $novoUsuario)) {
             header('Location: index.php?msg=adicionado');
             exit;
         } else {

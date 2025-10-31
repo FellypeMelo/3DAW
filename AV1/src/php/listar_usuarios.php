@@ -4,7 +4,7 @@ session_start();
 verificarAcesso(['admin']);
 
 $cabecalhosUsuarios = ['id', 'tipo', 'nome', 'email', 'senha'];
-$usuarios = lerDados(USERS_FILE, $cabecalhosUsuarios);
+$usuarios = lerDados(USERS_TABLE, $cabecalhosUsuarios);
 $mensagem = $_GET['msg'] ?? '';
 ?>
 
