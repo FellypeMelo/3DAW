@@ -22,55 +22,42 @@ if (empty($id) || empty($descricao)) {
     exit;
 }
 
-$cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-$perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
-
-$perguntaIndex = -1;
-foreach ($perguntas as $index => $p) {
-    if ($p['id'] == $id) {
-        $perguntaIndex = $index;
-        break;
-    }
-}
-
-if ($perguntaIndex === -1) {
+// Buscar pergunta e atualizar apenas o registro
+$pergunta = buscarPerguntaPorId($id);
+if (!$pergunta) {
     echo json_encode(['success' => false, 'message' => 'Pergunta não encontrada']);
     exit;
 }
 
-$pergunta = $perguntas[$perguntaIndex];
-
-$perguntas[$perguntaIndex]['descricao'] = $descricao;
+$dadosAtualizados = ['id' => $id, 'descricao' => $descricao];
 
 if ($pergunta['tipo'] === 'texto') {
     $resposta = trim($_POST['resposta'] ?? '');
     if (empty($resposta)) {
-        echo json_encode(['success' => false, 'message' => 'Resposta é obrigatória para perguntas de texto']);
+        echo json_encode(['success' => false, 'message' => 'Resposta obrigatória para pergunta de texto']);
         exit;
     }
-    $perguntas[$perguntaIndex]['correta'] = $resposta;
+    $dadosAtualizados['correta'] = $resposta;
+    $dadosAtualizados['opcoes'] = '';
 } elseif ($pergunta['tipo'] === 'multipla_escolha') {
     $opcoes = json_decode($_POST['opcoes'] ?? '[]', true);
     $corretaIndex = intval($_POST['correta'] ?? -1);
 
     if (count($opcoes) < 2) {
-        echo json_encode(['success' => false, 'message' => 'Pelo menos duas opções são obrigatórias']);
+        echo json_encode(['success' => false, 'message' => 'É necessário ao menos 2 opções']);
         exit;
     }
-
     if ($corretaIndex < 0 || $corretaIndex >= count($opcoes)) {
-        echo json_encode(['success' => false, 'message' => 'Opção correta inválida']);
+        echo json_encode(['success' => false, 'message' => 'Índice de opção correta inválido']);
         exit;
     }
 
     $opcoesString = converterArrayParaString($opcoes);
-    $respostaCorreta = $opcoes[$corretaIndex];
-
-    $perguntas[$perguntaIndex]['opcoes'] = $opcoesString;
-    $perguntas[$perguntaIndex]['correta'] = $respostaCorreta;
+    $dadosAtualizados['opcoes'] = $opcoesString;
+    $dadosAtualizados['correta'] = $opcoes[$corretaIndex];
 }
 
-if (salvarDados(QUESTIONS_FILE, $perguntas)) {
+if (salvarDados(QUESTIONS_TABLE, $dadosAtualizados)) {
     echo json_encode(['success' => true, 'message' => 'Pergunta atualizada com sucesso']);
 } else {
     echo json_encode(['success' => false, 'message' => 'Erro ao salvar pergunta']);

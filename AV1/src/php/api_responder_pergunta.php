@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $pergunta_id = $_POST['pergunta_id'] ?? '';
 $resposta = $_POST['resposta'] ?? '';
 // O login armazena o usuário inteiro em $_SESSION['user'] (ver login.php)
+// Em DB usamos id do usuário
 $user_id = $_SESSION['user']['id'] ?? '';
 
 if (empty($pergunta_id) || empty($resposta) || empty($user_id)) {
@@ -24,44 +25,28 @@ if (empty($pergunta_id) || empty($resposta) || empty($user_id)) {
     exit;
 }
 
-// Ler perguntas para verificar resposta correta
-$cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-$perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
-
-$pergunta = null;
-foreach ($perguntas as $p) {
-    if ($p['id'] == $pergunta_id) {
-        $pergunta = $p;
-        break;
-    }
-}
-
+// Buscar pergunta diretamente no banco
+$pergunta = buscarPerguntaPorId($pergunta_id);
 if (!$pergunta) {
     echo json_encode(['success' => false, 'message' => 'Pergunta não encontrada']);
     exit;
 }
 
 // Verificar se resposta está correta
+// Verificar acerto
 $acertou = (strtolower(trim($resposta)) === strtolower(trim($pergunta['correta'])));
 
-// Salvar resposta
-$cabecalhosRespostas = ['id', 'user_id', 'pergunta_id', 'resposta', 'data_hora'];
-// Ler respostas do arquivo (constante definida em funcoes.php como ANSWERS_FILE)
-$respostas = lerDados(ANSWERS_FILE, $cabecalhosRespostas);
-
+// Inserir resposta no banco usando nomes de colunas corretos
 $novaResposta = [
-    'id' => gerarId($respostas),
-    'user_id' => $user_id,
-    'pergunta_id' => $pergunta_id,
-    'resposta' => $resposta,
-    'data_hora' => date('Y-m-d H:i:s')
+    'id_usuario' => $user_id,
+    'id_pergunta' => $pergunta_id,
+    'resposta_dada' => $resposta,
+    // 'data_hora' será preenchido pelo banco com TIMESTAMP DEFAULT
 ];
 
-$respostas[] = $novaResposta;
-
-if (salvarDados(ANSWERS_FILE, $respostas)) {
+if (inserirResposta($novaResposta)) {
     echo json_encode([
-        'success' => true, 
+        'success' => true,
         'acertou' => $acertou,
         'resposta_correta' => $pergunta['correta'],
         'message' => $acertou ? 'Resposta correta!' : 'Resposta incorreta!'

@@ -9,7 +9,7 @@ if (!isset($_SESSION['user']) || $_SESSION['tipo'] != 'admin') {
 }
 
 $cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-$perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
+$perguntas = lerDados(QUESTIONS_TABLE, $cabecalhosPerguntas);
 
 header('Content-Type: application/json');
 echo json_encode(['perguntas' => $perguntas]);

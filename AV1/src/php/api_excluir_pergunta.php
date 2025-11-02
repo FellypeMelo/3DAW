@@ -15,14 +15,8 @@ if (empty($id)) {
     exit;
 }
 
-$cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-$perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
-
-$perguntas = array_filter($perguntas, function($p) use ($id) {
-    return $p['id'] != $id;
-});
-
-if (salvarDados(QUESTIONS_FILE, $perguntas)) {
+// Excluir diretamente no banco
+if (excluirPergunta($id)) {
     echo json_encode(['success' => true, 'message' => 'Pergunta excluída']);
 } else {
     echo json_encode(['success' => false, 'message' => 'Erro ao excluir pergunta']);

@@ -15,17 +15,8 @@ if (empty($perguntaId)) {
     exit;
 }
 
-$cabecalhosPerguntas = ['id', 'tipo', 'descricao', 'opcoes', 'correta'];
-$perguntas = lerDados(QUESTIONS_FILE, $cabecalhosPerguntas);
-
-$perguntaEncontrada = null;
-foreach ($perguntas as $p) {
-    if ($p['id'] == $perguntaId) {
-        $perguntaEncontrada = $p;
-        break;
-    }
-}
-
+// Buscar pergunta diretamente no banco
+$perguntaEncontrada = buscarPerguntaPorId($perguntaId);
 if (!$perguntaEncontrada) {
     echo json_encode(['success' => false, 'message' => 'Pergunta não encontrada']);
     exit;
